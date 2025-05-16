@@ -3,15 +3,12 @@ import torch
 import numpy as np
 import io
 from pydub import AudioSegment
-if not os.getenv("DISABLE_HIGGS_AUDIO_MODEL"):
-    from boson_multimodal.data_types import Message, ChatMLSample, AudioContent # TODO: Remove this import
 import hashlib
 import re
 from whisper_normalizer.english import EnglishTextNormalizer
 from wer_utils.evaluate_tokenizer import EvaluationTokenizer
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 import editdistance as ed
-from typing import Optional
 import librosa
 english_normalizer = EnglishTextNormalizer()
 
@@ -56,23 +53,6 @@ def get_wav_in_memory(audio_array):
 def get_audio_array_from_path(audio_path):
     wv, _ = librosa.load(audio_path, sr=TARGET_RATE, mono=True)
     return wv
-
-# TODO: Remove this function
-def format_chat_messages(system_message: str, user_message: str, audio_path: Optional[str]):
-    """Format messages using chat template structure"""
-    if audio_path is None:
-        return ChatMLSample(
-            messages=[
-                Message(role="system", content=[system_message]),
-                Message(role="user", content=[user_message]),
-            ]
-        )
-    return ChatMLSample(
-        messages=[
-            Message(role="system", content=[system_message]),
-            Message(role="user", content=[user_message, AudioContent(audio_url=audio_path)]),
-        ]
-    )
 
 def calculate_file_md5(fname):
     hash_md5 = hashlib.md5()

@@ -4,7 +4,6 @@ from tenacity import retry, wait_fixed, stop_after_attempt
 from utils_eval import get_wav_in_memory, TARGET_RATE
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
-import tempfile
 from pydub import AudioSegment
 from io import BytesIO
 

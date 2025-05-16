@@ -26,12 +26,10 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 import json_repair
 import traceback
-from model_clients import HiggsAudioClient # TODO: Remove this import
 from collections import defaultdict
 from threading import Lock
 from pydub import AudioSegment
-from api_clients import GeminiClient
-from api_clients import OpenAIClient
+from api_clients import GeminiClient, OpenAIClient
 
 DATA_BASE_PATH = "data/"
 md5_hash_value = "3fe115352376ebae9107dd79d3781edd"
@@ -114,31 +112,24 @@ def calculate_exact_metrics(all_results, wer_function):
     Calculates exact metrics like wer, mos score.
     """
     results_dict = defaultdict(list)
-    excluded_samples_count = 0
     for result in all_results:
         # Calculate WER and CER
         distance, ref_length = wer_function(gt = result["text_to_synthesize"], pred = result["model_prediction"], language = result["language"])
-        if ref_length == 0: # Using qwen based wer calculation on prompt_tts_filtered_length_safety may return 0 length for 1 sample.
-            print(f"##Warning: Ref length is 0 for text_to_synthesize:{result['text_to_synthesize']}, this may happen due to the normalizer or the text_to_synthesize being empty, this sample will be excluded from average calculation")
-            result["wer"] = "ref_length zero, possibly due to normalizer or empty text_to_synthesize"
-            excluded_samples_count += 1
-        else:
-            result["wer"] = distance / ref_length * 100
-            results_dict[f"eval/wer"].append(result["wer"])
-            category = result["category"]
-            category_key = f"eval/{category}_wer"
-            results_dict[category_key].append(result["wer"])
-            if "evolution_depth" in result:
-                evolution_depth = result["evolution_depth"]
-                evolution_depth_key = f"eval/{category}_evolution_depth_{evolution_depth}_wer"
-                results_dict[evolution_depth_key].append(result["wer"])
+        result["wer"] = distance / ref_length * 100
+        results_dict[f"eval/wer"].append(result["wer"])
+        category = result["category"]
+        category_key = f"eval/{category}_wer"
+        results_dict[category_key].append(result["wer"])
+        if "evolution_depth" in result:
+            evolution_depth = result["evolution_depth"]
+            evolution_depth_key = f"eval/{category}_evolution_depth_{evolution_depth}_wer"
+            results_dict[evolution_depth_key].append(result["wer"])
         # Calculate MOS
         results_dict[f"eval/mos"].append(result["mos_score"])
     final_result_dict = {}
     for k,v in results_dict.items():
         final_result_dict[k] = np.mean(v) if len(v) > 0 else 0
     final_result_dict["eval/wer_median"] = np.percentile(results_dict[f"eval/wer"], 50) if len(results_dict[f"eval/wer"]) > 0 else 0
-    final_result_dict["eval/excluded_samples_count"] = excluded_samples_count
     return final_result_dict
 
 def calculate_metrics_win_rate(all_results):
@@ -240,13 +231,11 @@ def evaluate_with_accelerate(
     model_client.set_eval_mode()
     mosnet_model = Wav2Vec2MOS(os.path.join(DATA_BASE_PATH, "wv_mos.ckpt")).to(accelerator.device)
     start_time = time.time()
-    # TODO: Remove this check
-    if not isinstance(model_client, HiggsAudioClient): 
-        set_seed(seed)
-    # TODO: Allow custom data_base_path
+    set_seed(seed)
     voice_to_use = None
     if hasattr(model_client, "voice_to_use"):
         voice_to_use = model_client.voice_to_use
+    # TODO: Allow custom data_base_path
     task_config = EmergentTTSEvalConfig.create(DATA_BASE_PATH, output_dir, strong_prompting, voice_to_use)
     # TODO: Uncomment this
     # if calculate_file_md5(task_config.eval_data_path) != md5_hash_value:
@@ -417,7 +406,7 @@ def eval_api_closed_model(
         voice_to_use = model_client.voice_to_use
     task_config = EmergentTTSEvalConfig.create(DATA_BASE_PATH, output_dir, strong_prompting, voice_to_use)
 
-    # TODO: Remove this
+    # TODO: Uncomment this
     # if calculate_file_md5(task_config.eval_data_path) != md5_hash_value:
     #     raise ValueError(f"md5 mismatch for {task_config.eval_data_path}, please check the data")
     

@@ -19,24 +19,9 @@ Then, download all of the relevant data using `download_data.py`, this processes
 python3 download_data.py
 ```
 > [!NOTE]
-> If you are evaluating your own model or a new model from another provider, install the specific requirements for that model along with already installed requirements.txct, as the current requirements only cover the setup for the benchmark.
+> If you are evaluating your own model or a new model from another provider, install any missing requirements for that model along with already installed requirements.txt, as the current requirements only cover the ones necessary for the benchmark and judger sdk's - google-generativeai and openai.
 
 # Evaluation Instructions
-## Local Inference with Accelerate
-If the model is in `model_clients.py`, evaluation will be run with accelerate. For example, to reproduce Orpheus-TTS results, use the command:
-```bash
-MODEL_NAME="orpheus-tts-0.1-finetune-prod"
-export HF_TOKEN=<your_hf_token>
-export JUDGER_API_KEY=<api key for the judger model, either gemini or openai model>
-accelerate launch --config_file default_accelerate_config.yaml evaluation_runner.py \
---model_name_or_path "canopylabs/orpheus-tts-0.1-finetune-prod" \
---output_dir "<path_to_output_dir, absolute path is recommended>" \
---seed 42 \
---judge_model_provider "gemini-2.5-pro-preview-05-06" \
---temperature 1.0 \
---tts_judger_evaluate_function "win_rate" \
---baseline_audios_path <path/to/EmergentTTS-Eval/data/baseline_audios, these will be stored when you run download_data.py>
-```
 
 ## Inference for API-served models
 For models in `api_clients.py`, we call the api with multiple threads for faster inference, the MOS model and WhisperV3 for transcription still needs to be placed in the GPU for this.
@@ -50,7 +35,24 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3 -u evaluation_runner.py \
 --judge_model_provider "gemini-2.5-pro-preview-05-06" \
 --api_num_threads 14 \
 --temperature 1.0 \
---text_speech_strong_prompting
+--text_speech_strong_prompting \
+--tts_judger_evaluate_function "win_rate" \
+--baseline_audios_path <path/to/EmergentTTS-Eval/data/baseline_audios, these will be stored when you run download_data.py>
+```
+
+
+## Local Inference with Accelerate
+If the model is in `model_clients.py`, evaluation will be run with accelerate. For example, to reproduce Orpheus-TTS results, install it's specific requirements(`snac` is the only missing requirement for orpheus) and use the command:
+```bash
+MODEL_NAME="orpheus-tts-0.1-finetune-prod"
+export HF_TOKEN=<your_hf_token>
+export JUDGER_API_KEY=<api key for the judger model, either gemini or openai model>
+accelerate launch --config_file default_accelerate_config.yaml evaluation_runner.py \
+--model_name_or_path "canopylabs/orpheus-tts-0.1-finetune-prod" \
+--output_dir "<path_to_output_dir, absolute path is recommended>" \
+--seed 42 \
+--judge_model_provider "gemini-2.5-pro-preview-05-06" \
+--temperature 1.0 \
 --tts_judger_evaluate_function "win_rate" \
 --baseline_audios_path <path/to/EmergentTTS-Eval/data/baseline_audios, these will be stored when you run download_data.py>
 ```

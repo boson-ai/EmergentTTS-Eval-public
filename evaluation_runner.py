@@ -1,18 +1,9 @@
 import os
-# TODO: Remove this import
-if not os.getenv("DISABLE_HIGGS_AUDIO_MODEL"):
-    from boson_multimodal.model.higgs_audio import HiggsAudioModel
-from transformers import AutoTokenizer, AutoConfig, AutoProcessor
-import torch
 from accelerate import Accelerator
 
 from model_clients import (
-    HiggsAudioClient, # TODO: Remove this import
-    MiniCPMClient,
-    KimiClient,
     Qwen2_5OmniClient,
     Sesame1BClient,
-    BarkClient,
     OrpheusClient
 )
 from api_clients import (
@@ -26,10 +17,7 @@ from inference import evaluate_with_accelerate, eval_api_closed_model
 
 ## Model name to client mapping for HF models, please add new model here along with client function.
 hf_model_name_to_client = {
-    "openbmb/MiniCPM-o-2_6": MiniCPMClient,
-    "moonshotai/Kimi-Audio-7B-Instruct": KimiClient,
     "Qwen/Qwen2.5-Omni-7B": Qwen2_5OmniClient,
-    "suno/bark": BarkClient,
     "canopylabs/orpheus-tts-0.1-finetune-prod": OrpheusClient
 }
 from accelerate.utils import InitProcessGroupKwargs
@@ -44,13 +32,6 @@ if __name__ == "__main__":
     parser.add_argument("--num_samples", type=int, default=None, help="Number of samples to evaluate on, by default all samples are used")
     parser.add_argument("--output_dir", type=str, default=None, help="Output directory to save evaluation results")
     parser.add_argument("--seed", type=int, default=42, help="Random torch seed for reproducibility with non-api models")
-    parser.add_argument(
-        "--attn_implementation",
-        default="sdpa",
-        type=str,
-        choices=["sdpa", "flash_attention_2", "eager"],
-        help="The implementation of the attention layer.",
-    )
     # Benchmark specific arguments
     parser.add_argument(
         "--judge_model_provider",
@@ -69,13 +50,6 @@ if __name__ == "__main__":
         type=str,
         default=None,
         help="Base url for VLLM API, if judger model is hosted locally through openai compatible api",
-    )
-    ## TODO: Remove this argument
-    parser.add_argument(
-        "--audio_tokenizer_type",
-        type=str,
-        default=None,
-        help="Audio tokenizer to use for the model",
     )
     parser.add_argument(
         "--temperature",
@@ -142,28 +116,8 @@ if __name__ == "__main__":
     }
 
     # Check if model path exists locally
-    # TODO: Remove this block
     accelerator = None
-    if os.path.exists(args.model_name_or_path):
-        print("Evaluating local HiggsAudio model")
-        kwargs_handlers = [InitProcessGroupKwargs(timeout=timedelta(seconds=3600000))]
-        accelerator = Accelerator(kwargs_handlers=kwargs_handlers)
-        # Load model, tokenizer and config
-        model = HiggsAudioModel.from_pretrained(
-            args.model_name_or_path,
-            attn_implementation=args.attn_implementation,
-            torch_dtype=torch.bfloat16,
-            device_map=accelerator.device,
-        )
-        tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
-        config = AutoConfig.from_pretrained(args.model_name_or_path)
-        whisper_processor = AutoProcessor.from_pretrained(
-            "openai/whisper-large-v3-turbo",
-            trust_remote=True,
-        )
-        model_client = HiggsAudioClient(model, tokenizer, config, whisper_processor, accelerator, args.audio_tokenizer_type, args.seed)
-        evaluate_package = evaluate_with_accelerate
-    elif args.model_name_or_path in hf_model_name_to_client:
+    if args.model_name_or_path in hf_model_name_to_client:
         print(f"Evaluating HF hub model {args.model_name_or_path}")
         kwargs_handlers = [InitProcessGroupKwargs(timeout=timedelta(seconds=3600000))]
         accelerator = Accelerator(kwargs_handlers=kwargs_handlers)
