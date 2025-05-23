@@ -34,9 +34,8 @@ from api_clients import GeminiClient, OpenAIClient
 DATA_BASE_PATH = "data/"
 md5_hash_value = "3fe115352376ebae9107dd79d3781edd"
 
-WHISPER_PATH = "/fsx/data/higgs_audio_eval/assets/whisper-large-v3"
 source_language_to_hf_transcriber = {
-    "en": (WhisperTranscriber,WHISPER_PATH)
+    "en": (WhisperTranscriber,"openai/whisper-large-v3")
 }
 
 @dataclass
