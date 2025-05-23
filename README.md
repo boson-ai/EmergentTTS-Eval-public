@@ -57,6 +57,9 @@ accelerate launch --config_file default_accelerate_config.yaml evaluation_runner
 --baseline_audios_path <path/to/EmergentTTS-Eval/data/baseline_audios, these will be stored when you run download_data.py>
 ```
 
+# Custom Judger Model
+To use your own Judger Model, we recommend using vLLM to create an OpenAI compatible server. Next, you just have to pass the flag `--judger_base_url` pointing to the IP and port of the custom server.
+
 # Flags and Considerations
 - For single GPU setup, edit the `default_accelerate_config.yaml` file and use `gpu_ids: 0,` and `num_processes: 1`.
 - Use the `--num_samples` parameter to evaluate on only a subset of samples.
