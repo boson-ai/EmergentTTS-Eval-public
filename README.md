@@ -1,6 +1,9 @@
 # EmergentTTS-Eval
 Code accompanying the paper, "EmergentTTS-Eval: Evaluating TTS Models on Complex Prosodic, Expressiveness, and Linguistic Challenges Using Model-as-a-Judge"
 
+# Introduction
+Text-to-Speech (TTS) benchmarks often fail to capture how well models handle nuanced and semantically complex text. We introduce *EmergentTTS-Eval*, a comprehensive benchmark covering six challenging TTS scenarios: emotions, paralinguistics, foreign words, syntactic complexity, complex pronunciation (e.g. URLs, formulas), and questions. Crucially, our framework automates both test-generation and evaluation, making the benchmark easily extensible. Starting from a small set of human-written seed prompts, we iteratively extend them using LLMs to target specific structural, phonetic and prosodic challenges, resulting in 1,645 diverse test samples. Moreover, we employ a model-as-a-judge approach, using a Large Audio Language Model (LALM) to assess the speech across multiple dimensions such as expressed emotion, prosodic, intonational, and pronunciation accuracy. We evaluate state-of-the-art open-source and proprietary TTS systems, such as 11Labs, Deepgram, and OpenAI's 4o-mini-TTS, on EmergentTTS-Eval, demonstrating its ability to reveal fine-grained performance differences. Results show that the model-as-a-judge approach offers robust TTS assessment and a high correlation with human preferences.
+
 # Leaderboard
 ### WER ↓ and Win-rate ↑ over all categories with gpt-4o-mini-tts-alloy as baseline and gemini-2.5-pro as judger; † indicates Strong Prompted models.
 > [!NOTE]
