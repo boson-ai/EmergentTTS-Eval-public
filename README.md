@@ -1,5 +1,5 @@
 # EmergentTTS-Eval
-Code accompanying the paper, "EmergentTTS-Eval: Evaluating TTS Models on Complex Prosodic, Expressiveness, and Linguistic Challenges Using Model-as-Judge"
+Code accompanying the paper, "EmergentTTS-Eval: Evaluating TTS Models on Complex Prosodic, Expressiveness, and Linguistic Challenges Using Model-as-a-Judge"
 
 # Leaderboard
 ### WER ↓ and Win-rate ↑ over all categories with gpt-4o-mini-tts-alloy as baseline and gemini-2.5-pro as judger; † indicates Strong Prompted models.
