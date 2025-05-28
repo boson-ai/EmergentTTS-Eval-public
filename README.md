@@ -3,6 +3,8 @@ Code accompanying the paper, "EmergentTTS-Eval: Evaluating TTS Models on Complex
 
 # Leaderboard
 ### WER ↓ and Win-rate ↑ over all categories with gpt-4o-mini-tts-alloy as baseline and gemini-2.5-pro as judger; † indicates Strong Prompted models.
+> [!NOTE]
+> The generated audios for all of the models we evaluated, along with the predictions made by the gemini-2.5-pro judger are available in this [Google Drive link](https://drive.google.com/drive/folders/1SGEGaUai2UqOMbwXx447yZeY-6gCU0F_?usp=drive_link).
 
 | Model                        | Voice            | Overall WER ↓ | Overall Win-Rate ↑ | Emotions WER ↓ | Emotions Win-Rate ↑ | Foreign Words WER ↓ | Foreign Words Win-Rate ↑ | Paralinguistics WER ↓ | Paralinguistics Win-Rate ↑ | Complex Pronunciation WER ↓ | Complex Pronunciation Win-Rate ↑ | Questions WER ↓ | Questions Win-Rate ↑ | Syntactic Complexity WER ↓ | Syntactic Complexity Win-Rate ↑ |
 |------------------------------|------------------|----------------|---------------------|---------------------|--------------------------|-----------------------|----------------------------|-----------------------------|----------------------------------|-----------------|----------------------|-----------------------------|---------------------------------|---------------|--------------------|
