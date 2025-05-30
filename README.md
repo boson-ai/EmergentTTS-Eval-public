@@ -1,4 +1,10 @@
-# EmergentTTS-Eval
+<h1 align="center">EmergentTTS-Eval</h1>
+
+<p align="center">
+  <a href="https://arxiv.org/abs/2505.23009"><img src="https://img.shields.io/badge/arXiv-2505.23009-b31b1b.svg" alt="arXiv"></a>
+  <a href="https://huggingface.co/datasets/bosonai/EmergentTTS-Eval"><img src="https://img.shields.io/badge/HuggingFace-Datasets-yellow.svg" alt="Hugging Face"></a>
+</p>
+
 Code accompanying the paper, "EmergentTTS-Eval: Evaluating TTS Models on Complex Prosodic, Expressiveness, and Linguistic Challenges Using Model-as-a-Judge"
 
 # Introduction
