@@ -106,3 +106,15 @@ To use your own Judger Model, we recommend using vLLM to create an OpenAI compat
 - To use a specific voice of the model, if applicable, use the `--voice_to_use` paramter.
 - `--baseline_audios_path` needs to be passed if win_rate is calculated.
 - To disable audio generation and fetch generated audios from a path, use the `--fetch_audios_from_path` paramter, this can be useful for testing different judger and not changing the generated audios.
+
+If our work proves useful to you, cite it as:
+```bash
+@misc{manku2025emergentttseval,
+    title={EmergentTTS-Eval: Evaluating TTS Models on Complex Prosodic, Expressiveness, and Linguistic Challenges Using Model-as-a-Judge},
+    author={Ruskin Raj Manku and Yuzhi Tang and Xingjian Shi and Mu Li and Alex Smola},
+    year={2025},
+    eprint={2505.23009},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG}
+}
+```
