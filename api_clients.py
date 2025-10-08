@@ -217,28 +217,6 @@ class ElevenLabsClient():
         from elevenlabs import ElevenLabs
         self.client = ElevenLabs(api_key=api_key)
         self.voice_to_use = voice_to_use if voice_to_use is not None else "JBFqnCBsd6RMkjVDRZzb"
-    
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(10))
-    def generate_audio_out_prompt_tts(self, model_name, system_message, user_message, **GENERATION_CONFIG):
-        """
-        In this case, system message contains the style prompt and user_message contains the content.
-        """
-        try:
-            out_audio_string = self.client.text_to_voice.create_previews(
-                        voice_description=system_message,
-                        text=user_message,
-                    ).previews[0].audio_base_64
-            out_audio_bytes = base64.b64decode(out_audio_string)
-            mp3_buffer = BytesIO(out_audio_bytes)
-            mp3_buffer.seek(0)
-            pydub_segment = AudioSegment.from_file(
-                mp3_buffer, format="mp3"
-            )
-            pydub_segment = pydub_segment.set_channels(1).set_sample_width(2)
-            return pydub_segment, None
-        except Exception as e:
-            print(f"Retrying after error: {str(e)}")
-            raise e
         
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(10))
     def generate_audio_out(self, model_name, system_message, user_message, **GENERATION_CONFIG):
