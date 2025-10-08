@@ -2,8 +2,8 @@ import openai
 import base64
 from tenacity import retry, wait_fixed, stop_after_attempt
 from utils_eval import get_wav_in_memory, TARGET_RATE
-import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from google import genai
+from google.genai import types
 from pydub import AudioSegment
 from io import BytesIO
 
@@ -121,34 +121,96 @@ class OpenAIDirectClient():
         return system_message, text_to_synthesize
 
 class GeminiClient():
-    def __init__(self, api_key):
-        genai.configure(api_key=api_key)
-        self.safety_settings = {
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-        }
+    def __init__(self, api_key, voice_to_use=None, thinking_budget=None):
+        self.client = genai.Client(api_key=api_key)
+        self.safety_settings = [
+            types.SafetySetting(
+                category="HARM_CATEGORY_HATE_SPEECH",
+                threshold="BLOCK_NONE"
+            ),
+            types.SafetySetting(
+                category="HARM_CATEGORY_HARASSMENT",
+                threshold="BLOCK_NONE"
+            ),
+            types.SafetySetting(
+                category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold="BLOCK_NONE"
+            ),
+            types.SafetySetting(
+                category="HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold="BLOCK_NONE"
+            ),
+        ]
+        self.voice_to_use = voice_to_use if voice_to_use is not None else "Zephyr"
+        self.sampling_rate = 24000
+        include_thoughts = True if thinking_budget and thinking_budget > 0 else False
+        self.thinking_config = types.ThinkingConfig(
+            include_thoughts=include_thoughts,
+            thinking_budget=thinking_budget
+        ) if thinking_budget else None
     @retry(stop=stop_after_attempt(10), wait=wait_fixed(10))
     def generate_w_audio_comparison(self, model_name, system_message, user_message, audio_array_1, post_audio_1_message, audio_array_2, **GENERATION_CONFIG):
         try:
-            generation_config = genai.GenerationConfig(max_output_tokens = GENERATION_CONFIG["max_new_tokens"],
+            generation_config = types.GenerateContentConfig(system_instruction=system_message,
+                                                       max_output_tokens = GENERATION_CONFIG["max_new_tokens"],
                                                        temperature = GENERATION_CONFIG["temperature"],
-                                                       top_p = GENERATION_CONFIG["top_p"])
+                                                       top_p = GENERATION_CONFIG["top_p"],
+                                                       safety_settings=self.safety_settings,
+                                                       thinking_config=self.thinking_config)
             wav_audio_bytes_1 = get_wav_in_memory(audio_array_1)
             wav_audio_bytes_2 = get_wav_in_memory(audio_array_2)
-            request_payload = [user_message, {"mime_type": f"audio/wav", "data": wav_audio_bytes_1}, post_audio_1_message, {"mime_type": f"audio/wav", "data": wav_audio_bytes_2}]
+            request_payload = [
+                               user_message, 
+                               types.Part.from_bytes(data=wav_audio_bytes_1, mime_type='audio/wav'), 
+                               post_audio_1_message, 
+                               types.Part.from_bytes(data=wav_audio_bytes_2, mime_type='audio/wav')
+                            ]
 
-            model = genai.GenerativeModel(model_name, system_instruction=system_message)
-            response = model.generate_content(
-                request_payload,
-                generation_config=generation_config,
-                safety_settings=self.safety_settings,
+            response = self.client.models.generate_content(
+                model=model_name,
+                contents=request_payload,
+                config=generation_config
             )
             return response.text
         except Exception as e:
             print(f"Retrying after error: {str(e)}")
             raise e
+
+    @retry(stop=stop_after_attempt(10), wait=wait_fixed(10))
+    def generate_audio_out(self, model_name, system_message, user_message, **GENERATION_CONFIG):
+        try:
+            config=types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name=self.voice_to_use,
+                        )
+                    )
+                ),
+            )
+            response = self.client.models.generate_content(
+                model=model_name,
+                contents=user_message,
+                config=config
+            )
+            wv_data = response.candidates[0].content.parts[0].inline_data.data
+            pydub_segment = AudioSegment(
+                data=wv_data,
+                sample_width=2,
+                frame_rate=self.sampling_rate,
+                channels=1
+            )
+            return pydub_segment, None
+        except Exception as e:
+            print(f"Retrying after error: {str(e)}")
+            raise e
+    def prepare_emergent_tts_sample(self, text_to_synthesize, category, strong_prompting, prompting_object,**kwargs):
+        if strong_prompting:
+            user_message = prompting_object.USER_MESSAGE_STRONG_TEMPLATE.replace("{{{descriptions}}}", prompting_object.ALL_DESCRIPTIONS[category]).replace("{{{text_to_synthesize}}}", text_to_synthesize)
+        else:
+            user_message = prompting_object.USER_MESSAGE_DEFAULT_TEMPLATE.replace("{{{text_to_synthesize}}}", text_to_synthesize)
+        return "", user_message
 
 class ElevenLabsClient():
     def __init__(self, api_key, voice_to_use):

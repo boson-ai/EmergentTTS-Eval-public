@@ -97,7 +97,7 @@ def audio_understanding_model_win_rate(sample: Dict, audio_out_path, client, mod
 
 def get_judge_model_attributes(judge_model, judger_base_url):
     if "gemini" in judge_model:
-        client = GeminiClient(api_key=os.getenv("JUDGER_API_KEY"))
+        client = GeminiClient(api_key=os.getenv("JUDGER_API_KEY"), thinking_budget=256)
     else:
         assert "gpt" in judge_model or judger_base_url is not None, "Please provide gpt as judge_model, or provide a valid judger_base_url to use locally hosted model as judger"
         client = OpenAIClient(api_key=os.getenv("JUDGER_API_KEY"), voice_to_use=None, base_url=judger_base_url)
