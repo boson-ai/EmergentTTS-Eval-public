@@ -97,10 +97,10 @@ class EmergentTextSpeech:
 
         **Example:** "Did you see the message? Well I hope you did. But please tell me that you actually did?"
         **Explanation:** 
-            - There maybe multiple correct patterns to render this speech with, but we want to judge if the TTS system has made an attemp at correctly conveying the interrogative intonation for the 2 questinos, and the declarative intonation for the statement between the questions.
+            - There maybe multiple correct patterns to render this speech with, but we want to judge if the TTS system has made an attemp at correctly conveying the interrogative intonation for the 2 questions, and the declarative intonation for the statement between the questions.
 
         **Note:**
-            - The **text_to_synthesize** may contain multiple questions without or without the question mark, you have to correctly differentiate between the questions and the statements.
+            - The **text_to_synthesize** may contain multiple questions with or without the question mark, you have to correctly differentiate between the questions and the statements.
 
         **Rating Scale:**
         1: All intonation patterns incorrect
